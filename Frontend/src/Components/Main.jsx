@@ -50,7 +50,7 @@ const App = () => {
 
   const fetchPoints = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/points', {
+      const response = await axios.get('https://task-7.up.railway.app/points', {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
       setPoints(response.data.userPoints);
@@ -63,7 +63,7 @@ const App = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        'http://localhost:5000/roll',
+        'https://task-7.up.railway.app/roll',
         { bet, choice, id: auth.user.id },
         { headers: { Authorization: `Bearer ${auth.token}` } }
       );
@@ -84,7 +84,7 @@ const App = () => {
 
   const handleAuth = async () => {
     try {
-      const url = isLogin ? 'http://localhost:5000/login' : 'http://localhost:5000/register';
+      const url = isLogin ? 'https://task-7.up.railway.app/login' : 'https://task-7.up.railway.app/register';
       const payload = isLogin ? { Email: form.email, Password: form.password } : { Name: form.name, Email: form.email, Password: form.password };
       const response = await axios.post(url, payload);
       const userAuth = { token: response.data.token, user: response.data.user };
