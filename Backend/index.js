@@ -150,15 +150,20 @@ app.post('/roll', async (req, res) => {
 
 // Endpoint to get user points
 app.get('/points', async (req, res) => {
-    const { id } = req.body;
-
-    const user = await User.findById(id);
-    if (!user) {
+    const { id } = req.query;
+  
+    try {
+      const user = await User.findById(id);
+      if (!user) {
         return res.status(400).send({ message: 'User not found' });
+      }
+      const userPoints = user.Points;
+      res.send({ userPoints });
+    } catch (error) {
+      res.status(500).send({ message: 'Server error', error });
     }
-    const userPoints = user.Points; 
-    res.send({ userPoints });
-});
+  });
+  
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
