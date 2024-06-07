@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const bycrypt = require('bcryptjs');
 const User = require('./models/User');
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
 
 app.use(cors());
@@ -151,6 +151,7 @@ app.post('/roll', async (req, res) => {
 // Endpoint to get user points
 app.get('/points', async (req, res) => {
     const { id } = req.body;
+
     const user = await User.findById(id);
     if (!user) {
         return res.status(400).send({ message: 'User not found' });
