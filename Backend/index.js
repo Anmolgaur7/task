@@ -156,7 +156,7 @@ app.get('/points', async (req, res) => {
     if (!user) {
         return res.status(400).send({ message: 'User not found' });
     }
-    const userPoints = user.Points; F
+    const userPoints = user.Points; 
     res.send({ userPoints });
 });
 
