@@ -35,7 +35,6 @@ const App = () => {
   const [form, setForm] = useState({ email: '', password: '', name: '' });
   const [isLogin, setIsLogin] = useState(true);
 
-  // Load auth details from local storage on mount
   useEffect(() => {
     const storedAuth = JSON.parse(localStorage.getItem('auth'));
     if (storedAuth && storedAuth.token) {
@@ -43,14 +42,12 @@ const App = () => {
     }
   }, []);
 
-  // Fetch points when auth token changes
   useEffect(() => {
     if (auth.token) {
       fetchPoints();
     }
   }, [auth.token]);
 
-  // Fetch points from server
   const fetchPoints = async () => {
     try {
       const response = await axios.get('https://task-7.up.railway.app/points', {
@@ -62,7 +59,6 @@ const App = () => {
     }
   };
 
-  // Handle dice roll action
   const handleRollDice = async () => {
     setLoading(true);
     try {
@@ -86,12 +82,23 @@ const App = () => {
     }
   };
 
-  // Handle authentication (login/register)
   const handleAuth = async () => {
+    if (!form.email || !form.password || (!isLogin && !form.name)) {
+      setSnackbarMessage('Please fill in all fields');
+      setSnackbarOpen(true);
+      return;
+    }
+    if (form.password.length < 6) {
+      setSnackbarMessage('Password must be at least 6 characters long');
+      setSnackbarOpen(true);
+      return;
+    }
+
     try {
       const url = isLogin ? 'https://task-7.up.railway.app/login' : 'https://task-7.up.railway.app/register';
       const payload = isLogin ? { Email: form.email, Password: form.password } : { Name: form.name, Email: form.email, Password: form.password };
       const response = await axios.post(url, payload);
+
       if (isLogin) {
         const userAuth = { token: response.data.token, user: response.data.user };
         setAuth(userAuth);
@@ -103,18 +110,20 @@ const App = () => {
       }
     } catch (error) {
       console.error('Error during authentication:', error);
-      setSnackbarMessage('Authentication failed');
+      if (error.response && error.response.data && error.response.data.message) {
+        setSnackbarMessage(error.response.data.message);
+      } else {
+        setSnackbarMessage('Authentication failed');
+      }
       setSnackbarOpen(true);
     }
   };
 
-  // Handle logout
   const handleLogout = () => {
     setAuth({ token: null, user: null });
     localStorage.removeItem('auth');
   };
 
-  // Close snackbar
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
@@ -238,7 +247,7 @@ const App = () => {
               >
                 {isLogin ? 'Login' : 'Register'}
               </Button>
-              {!isLogin && (<Typography variant="h6">Once registration is done, go to the login page.</Typography>)}
+              {!isLogin && <h4>Once registration done go to login page</h4>}
             </Box>
             <Box mt={2}>
               <Button
@@ -255,11 +264,7 @@ const App = () => {
             </Box>
           </>
         )}
-        <Snackbar
-          open={snackbarOpen}
-          autoHideDuration={6000}
-          onClose={handleSnackbarClose}
-        >
+        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
           <Alert onClose={handleSnackbarClose} severity="info">
             {snackbarMessage}
           </Alert>
