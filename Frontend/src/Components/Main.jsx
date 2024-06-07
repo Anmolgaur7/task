@@ -12,10 +12,10 @@ import {
   Snackbar,
   Alert,
   Paper,
-  IconButton
+  IconButton,
+  CircularProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import CircularProgress from '@mui/material/CircularProgress';
 import axios from 'axios';
 import CasinoIcon from '@mui/icons-material/Casino';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -35,6 +35,7 @@ const App = () => {
   const [form, setForm] = useState({ email: '', password: '', name: '' });
   const [isLogin, setIsLogin] = useState(true);
 
+  // Load auth details from local storage on mount
   useEffect(() => {
     const storedAuth = JSON.parse(localStorage.getItem('auth'));
     if (storedAuth && storedAuth.token) {
@@ -42,12 +43,14 @@ const App = () => {
     }
   }, []);
 
+  // Fetch points when auth token changes
   useEffect(() => {
     if (auth.token) {
       fetchPoints();
     }
   }, [auth.token]);
 
+  // Fetch points from server
   const fetchPoints = async () => {
     try {
       const response = await axios.get('https://task-7.up.railway.app/points', {
@@ -58,8 +61,8 @@ const App = () => {
       console.error('Error fetching points:', error);
     }
   };
-  
 
+  // Handle dice roll action
   const handleRollDice = async () => {
     setLoading(true);
     try {
@@ -76,21 +79,28 @@ const App = () => {
       setMessage(payout > 0 ? `You win ${payout} points!` : `You lose ${bet} points.`);
       setSnackbarMessage(payout > 0 ? `You win ${payout} points!` : `You lose ${bet} points.`);
       setSnackbarOpen(true);
-      setLoading(false);
     } catch (error) {
       console.error('Error rolling dice:', error);
+    } finally {
       setLoading(false);
     }
   };
 
+  // Handle authentication (login/register)
   const handleAuth = async () => {
     try {
       const url = isLogin ? 'https://task-7.up.railway.app/login' : 'https://task-7.up.railway.app/register';
       const payload = isLogin ? { Email: form.email, Password: form.password } : { Name: form.name, Email: form.email, Password: form.password };
       const response = await axios.post(url, payload);
-      const userAuth = { token: response.data.token, user: response.data.user };
-      setAuth(userAuth);
-      localStorage.setItem('auth', JSON.stringify(userAuth));
+      if (isLogin) {
+        const userAuth = { token: response.data.token, user: response.data.user };
+        setAuth(userAuth);
+        localStorage.setItem('auth', JSON.stringify(userAuth));
+      } else {
+        setSnackbarMessage('Registration successful! Please log in.');
+        setSnackbarOpen(true);
+        setIsLogin(true);
+      }
     } catch (error) {
       console.error('Error during authentication:', error);
       setSnackbarMessage('Authentication failed');
@@ -98,27 +108,28 @@ const App = () => {
     }
   };
 
+  // Handle logout
   const handleLogout = () => {
     setAuth({ token: null, user: null });
     localStorage.removeItem('auth');
   };
 
+  // Close snackbar
   const handleSnackbarClose = () => {
     setSnackbarOpen(false);
   };
 
   return (
-    <Container maxWidth="xs" style={{ textAlign: 'center', paddingTop: '20px',marginTop:"48px" }}>
-      <Paper elevation={3} style={{ padding: '20px', borderRadius: '10px', }}>
+    <Container maxWidth="xs" style={{ textAlign: 'center', paddingTop: '20px', marginTop: '48px' }}>
+      <Paper elevation={3} style={{ padding: '20px', borderRadius: '10px' }}>
         {auth.token ? (
           <>
-          <Box display="flex" alignItems="center">
-                <Typography variant="h5" gutterBottom>
-                  Welcome, <b>{auth.user.name}</b>
-                </Typography>
-              </Box>
+            <Box display="flex" alignItems="center">
+              <Typography variant="h5" gutterBottom>
+                Welcome, <b>{auth.user.name}</b>
+              </Typography>
+            </Box>
             <Box display="flex" justifyContent="space-between" alignItems="center">
-              
               <Typography variant="h4" gutterBottom>
                 7 Up 7 Down Game
               </Typography>
@@ -188,7 +199,7 @@ const App = () => {
               Please {isLogin ? 'login' : 'register'} to play the game
             </Typography>
 
-            <Typography variant="h5" style={{fontWeight:"bold",margin:"20px"}} gutterBottom>
+            <Typography variant="h5" style={{ fontWeight: 'bold', margin: '20px' }} gutterBottom>
               {isLogin ? 'Login' : 'Register'}
             </Typography>
             {!isLogin && (
@@ -227,9 +238,7 @@ const App = () => {
               >
                 {isLogin ? 'Login' : 'Register'}
               </Button>
-              {
-                !isLogin && (<h4>Once registration done go to login page</h4>)
-              }
+              {!isLogin && (<Typography variant="h6">Once registration is done, go to the login page.</Typography>)}
             </Box>
             <Box mt={2}>
               <Button
